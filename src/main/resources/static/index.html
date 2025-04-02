@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chat con Gemini de Tomas</title>
+  
+  <link rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(120deg, #e2e2e2, #a3c1d9); 
+      font-family: 'Open Sans', sans-serif;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-top: 20px;
+    }
+    .chat-container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #ffffffaa;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    #chatHistory p {
+      margin: 8px 0;
+      line-height: 1.4;
+    }
+    
+    .user-message {
+      color: #004085;
+      font-weight: 600;
+    }
+    .gemini-message {
+      color: #155724;
+    }
+
+    .input-area {
+      text-align: center;
+      margin-top: 20px;
+    }
+    #userInput {
+      width: 80%;
+      max-width: 500px;
+      font-size: 14px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 8px;
+      font-size: 14px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0069d9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chat con Gemini de Tomas</h1>
+
+  <div class="chat-container">
+    <div id="chatHistory"></div>
+  </div>
+
+  <div class="input-area">
+    <textarea id="userInput" rows="3" placeholder="Escribe tu mensaje..."></textarea><br/>
+    <button onclick="sendMessage()">Enviar</button>
+  </div>
+
+  <script>
+    function sendMessage() {
+      const msg = document.getElementById('userInput').value;
+
+      fetch('/api/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const chatDiv = document.getElementById('chatHistory');
+      
+        
+        chatDiv.innerHTML += `<p><span class="user-message">Tú:</span> ${msg}</p>`;
+      
+        
+        let geminiText = data.reply;
+      
+        chatDiv.innerHTML += `<p><span class="gemini-message">Gemini:</span> ${geminiText}</p>`;
+      
+        document.getElementById('userInput').value = '';
+      })
+      .catch(err => console.error(err));
+    }
+
+    window.onload = () => {
+      fetch('/api/chat/history')
+      .then(res => res.json())
+      .then(messages => {
+        const chatDiv = document.getElementById('chatHistory');
+        messages.forEach(m => {
+          const sender = (m.sender === 'user') ? 'Tú' : 'Gemini';
+          const className = (m.sender === 'user') ? 'user-message' : 'gemini-message';
+
+        
+          chatDiv.innerHTML += `<p><span class="${className}">${sender}:</span> ${m.content}</p>`;
+        });
+      })
+      .catch(err => console.error(err));
+    };
+  </script>
+</body>
+</html>
